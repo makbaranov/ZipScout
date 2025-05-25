@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QApplication>
 
+#include "ZipWordSearcher.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -33,6 +35,11 @@ int main(int argc, char *argv[])
         qDebug() << "Source:" << source;
         qDebug() << "Destination:" << dest;
         qDebug() << "Filter:" << filter;
+
+        ZipWordSearcher searcher;
+        auto result = searcher.findFilesWithWord(source, filter);
+        qDebug() << result;
+
         return 0;
     }
 

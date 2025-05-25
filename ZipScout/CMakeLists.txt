@@ -9,7 +9,23 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core)
+if(WIN32)
+    list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
+endif()
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Concurrent )
+
+include(FetchContent)
+set(QUAZIP_QT_MAJOR_VERSION 6 CACHE STRING "Qt major version")
+set(QUAZIP_ENABLE_TESTS OFF CACHE BOOL "Build QuaZip tests")
+FetchContent_Declare(
+    QuaZip
+    GIT_REPOSITORY https://github.com/stachenov/quazip.git
+    GIT_TAG v1.4
+)
+FetchContent_MakeAvailable(QuaZip)
+
+
 
 include(FetchContent)
 FetchContent_Declare(
@@ -28,10 +44,14 @@ qt_add_executable(ZipScout
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    ZipWordSearcher.h
+    ZipWordSearcher.cpp
 )
 
 target_link_libraries(ZipScout PRIVATE
     Qt6::Widgets
+    Qt6::Concurrent
+    QuaZip::QuaZip
 )
 
 if(WIN32)
