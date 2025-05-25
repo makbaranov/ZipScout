@@ -21,12 +21,6 @@ int main(int argc, char *argv[])
     parser.addOption({"filter", "Filter, word to search", "string"});
     parser.process(a);
 
-    zmq::context_t ctx;
-    zmq::socket_t sock(ctx, zmq::socket_type::rep);
-    sock.bind("tcp://*:5555");
-    qDebug() << "ZeroMQ works!";
-
-
     if (parser.isSet("nogui")) {
         qDebug() << "Console mod";
 

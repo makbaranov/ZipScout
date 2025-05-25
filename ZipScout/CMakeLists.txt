@@ -81,6 +81,13 @@ install(TARGETS ZipScout
 
 qt_finalize_executable(ZipScout)
 
+add_executable(ZipScoutWorker worker.cpp)
+target_link_libraries(ZipScoutWorker PRIVATE
+    Qt6::Core
+    libzmq
+    cppzmq
+)
+
 add_executable(ZipScoutTests tests/test_main.cpp)
 target_link_libraries(ZipScoutTests PRIVATE
     Qt6::Core
