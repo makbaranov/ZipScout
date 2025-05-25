@@ -12,7 +12,7 @@ QStringList ZipWordSearcher::findFilesWithWord(const QString& zipPath, const QSt
 
     QuaZip zip(zipPath);
     if (!zip.open(QuaZip::mdUnzip)) {
-        m_lastError = QString("Не удалось открыть архив: %1").arg(zip.getZipError());
+        m_lastError = QString("Couldnot open arhive: %1").arg(zip.getZipError());
         emit errorOccurred(m_lastError);
         return foundFiles;
     }

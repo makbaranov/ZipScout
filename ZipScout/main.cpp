@@ -4,6 +4,7 @@
 #include <QApplication>
 
 #include "ZipWordSearcher.h"
+#include "ZipArchiveCreator.h"
 
 int main(int argc, char *argv[])
 {
@@ -39,6 +40,9 @@ int main(int argc, char *argv[])
         ZipWordSearcher searcher;
         auto result = searcher.findFilesWithWord(source, filter);
         qDebug() << result;
+
+        ZipArchiveCreator creator;
+        creator.createResultArchive(source, result, dest);
 
         return 0;
     }

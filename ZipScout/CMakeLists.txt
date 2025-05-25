@@ -46,6 +46,8 @@ qt_add_executable(ZipScout
     mainwindow.ui
     ZipWordSearcher.h
     ZipWordSearcher.cpp
+    ZipArchiveCreator.h
+    ZipArchiveCreator.cpp
 )
 
 target_link_libraries(ZipScout PRIVATE
