@@ -14,6 +14,8 @@ if(WIN32)
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Concurrent )
+find_package(ZeroMQ REQUIRED)
+find_package(cppzmq REQUIRED)
 
 include(FetchContent)
 set(QUAZIP_QT_MAJOR_VERSION 6 CACHE STRING "Qt major version")
@@ -25,9 +27,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(QuaZip)
 
+# FetchContent_Declare(
+#     zeromq
+#     GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+#     GIT_TAG        v4.3.5
+# )
+# FetchContent_MakeAvailable(zeromq)
+# if(NOT TARGET libzmq)
+#     message(FATAL_ERROR "ZeroMQ not available!")
+# endif()
 
-
-include(FetchContent)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -54,6 +63,8 @@ target_link_libraries(ZipScout PRIVATE
     Qt6::Widgets
     Qt6::Concurrent
     QuaZip::QuaZip
+    libzmq
+    cppzmq
 )
 
 if(WIN32)

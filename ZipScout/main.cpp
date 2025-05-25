@@ -6,6 +6,8 @@
 #include "ZipWordSearcher.h"
 #include "ZipArchiveCreator.h"
 
+#include <zmq.hpp>
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -17,9 +19,13 @@ int main(int argc, char *argv[])
     parser.addOption({"source", "Sorce file", "path"});
     parser.addOption({"destination", "Destination file", "path"});
     parser.addOption({"filter", "Filter, word to search", "string"});
-
-
     parser.process(a);
+
+    zmq::context_t ctx;
+    zmq::socket_t sock(ctx, zmq::socket_type::rep);
+    sock.bind("tcp://*:5555");
+    qDebug() << "ZeroMQ works!";
+
 
     if (parser.isSet("nogui")) {
         qDebug() << "Console mod";
