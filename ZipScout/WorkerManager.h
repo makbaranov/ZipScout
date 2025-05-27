@@ -16,5 +16,14 @@ public:
     void sendCommand(const QString& cmd);
     void testConnection();
 
+public slots:
+    void searchInArchive(const QString& zipPath, const QString& filter);
+    void createArchive(const QString& sourceZip, const QStringList& files, const QString& destZip);
+
+signals:
+    void searchCompleted(const QStringList& foundFiles);
+    void archiveCreated(bool success);
+
+private:
     QProcess m_process;
 };

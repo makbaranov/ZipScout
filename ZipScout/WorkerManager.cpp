@@ -1,5 +1,18 @@
 #include "WorkerManager.h"
 
+void WorkerManager::searchInArchive(const QString& zipPath, const QString& filter) {
+    QString cmd = QString("SEARCH|||%1|||%2").arg(zipPath).arg(filter);
+    sendCommand(cmd);
+}
+
+void WorkerManager::createArchive(const QString& sourceZip, const QStringList& files, const QString& destZip) {
+    QString cmd = QString("CREATE_ARCHIVE|||%1|||%2|||%3")
+    .arg(sourceZip)
+        .arg(files.join(";"))
+        .arg(destZip);
+    sendCommand(cmd);
+}
+
 WorkerManager::WorkerManager(QObject *parent) : QObject(parent) {
     connect(&m_process, &QProcess::started, []() {
         qDebug() << "Worker process started";
@@ -31,8 +44,17 @@ void WorkerManager::sendCommand(const QString& cmd) {
 
     zmq::message_t reply;
     if (socket.recv(reply)) {
-        qDebug() << "Worker response:" << QString::fromStdString(
+        QString response = QString::fromStdString(
             std::string(static_cast<char*>(reply.data()), reply.size()));
+
+        qDebug() << "Worker response:" << response;
+
+        if (cmd.startsWith("SEARCH")) {
+            emit searchCompleted(response.split(";"));
+        }
+        else if (cmd.startsWith("CREATE_ARCHIVE")) {
+            emit archiveCreated(response == "OK");
+        }
     }
 }
 

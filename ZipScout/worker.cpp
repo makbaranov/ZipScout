@@ -6,6 +6,10 @@
 #include "ZipArchiveCreator.h"
 
 int main(int argc, char *argv[]) {
+    const QString SEARCH_CMD = "SEARCH";
+    const QString CREATE_ARCHIVE_CMD = "CREATE_ARCHIVE";
+    const QString DELIMITER = "|||";
+
     QCoreApplication app(argc, argv);
 
     zmq::context_t ctx(1);
@@ -13,14 +17,6 @@ int main(int argc, char *argv[]) {
     socket.bind("tcp://*:5555");
 
     qDebug() << "Worker ready. Listening on tcp://*:5555";
-
-
-    // ZipWordSearcher searcher;
-    // auto result = searcher.findFilesWithWord(source, filter);
-    // qDebug() << result;
-
-    // ZipArchiveCreator creator;
-    // creator.createResultArchive(source, result, dest);
 
     while (true) {
         zmq::message_t request;
@@ -30,8 +26,9 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        std::string msg(static_cast<char*>(request.data()), request.size());
-        qDebug() << "Received command:" << QString::fromStdString(msg);
+        QString msg = QString::fromStdString(std::string(static_cast<char*>(request.data()), request.size()));
+
+        qDebug() << "Received command:" << msg;
 
         if (msg == "PING") {
             socket.send(zmq::buffer("PONG"), zmq::send_flags::none);
@@ -40,6 +37,24 @@ int main(int argc, char *argv[]) {
             socket.send(zmq::buffer("STOP_ACK"), zmq::send_flags::none);
             QMetaObject::invokeMethod(&app, "quit", Qt::QueuedConnection);
             break;
+        }
+        else if (msg.startsWith(SEARCH_CMD)) {
+            auto parts = msg.split(DELIMITER);
+            if (parts.size() == 3) {
+                ZipWordSearcher searcher;
+                auto result = searcher.findFilesWithWord(parts[1], parts[2]);
+                QString response = result.join(";");
+                socket.send(zmq::buffer(response.toStdString()), zmq::send_flags::none);
+            }
+        }
+        else if (msg.startsWith(CREATE_ARCHIVE_CMD)) {
+            auto parts = msg.split(DELIMITER);
+            if (parts.size() == 4) {
+                ZipArchiveCreator creator;
+                bool success = creator.createResultArchive(parts[1], parts[2].split(";"), parts[3]);
+                std::string to_send = success ? "OK" : "FAIL";
+                socket.send(zmq::buffer(to_send), zmq::send_flags::none);
+            }
         }
         else {
             socket.send(zmq::buffer("Unknown command"), zmq::send_flags::none);

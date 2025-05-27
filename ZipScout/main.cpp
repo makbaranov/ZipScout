@@ -2,6 +2,8 @@
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QApplication>
+#include <QEventLoop>
+#include <QObject>
 
 #include "WorkerManager.h"
 
@@ -11,22 +13,6 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-
-    WorkerManager manager;
-    manager.startWorker();
-
-    QTimer::singleShot(2000, [&manager]() {
-        manager.testConnection();
-    });
-
-    QTimer::singleShot(3000, [&manager]() {
-        manager.testConnection();
-    });
-
-    QTimer::singleShot(5000, [&manager]() {
-        manager.stopWorker();
-        QCoreApplication::quit();
-    });
 
     QCommandLineParser parser;
     parser.addOption({"test", "Test mod"});
@@ -52,6 +38,23 @@ int main(int argc, char *argv[])
         qDebug() << "Source:" << source;
         qDebug() << "Destination:" << dest;
         qDebug() << "Filter:" << filter;
+
+        QStringList files;
+
+        WorkerManager manager;
+        manager.startWorker();
+
+        QEventLoop loop;
+        QObject::connect(&manager, &WorkerManager::searchCompleted, [&](const QStringList& files) {
+            manager.createArchive(source, files, dest);
+        });
+        QObject::connect(&manager, &WorkerManager::archiveCreated, [&](bool success) {
+            qDebug() << (success ? "Done" : "Error");
+            loop.quit();
+        });
+
+        manager.searchInArchive(source, filter);
+        loop.exec();
         return 0;
     }
 
