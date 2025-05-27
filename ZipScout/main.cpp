@@ -3,14 +3,30 @@
 #include <QDebug>
 #include <QApplication>
 
-#include "ZipWordSearcher.h"
-#include "ZipArchiveCreator.h"
+#include "WorkerManager.h"
 
 #include <zmq.hpp>
+
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    WorkerManager manager;
+    manager.startWorker();
+
+    QTimer::singleShot(2000, [&manager]() {
+        manager.testConnection();
+    });
+
+    QTimer::singleShot(3000, [&manager]() {
+        manager.testConnection();
+    });
+
+    QTimer::singleShot(5000, [&manager]() {
+        manager.stopWorker();
+        QCoreApplication::quit();
+    });
 
     QCommandLineParser parser;
     parser.addOption({"test", "Test mod"});
@@ -36,14 +52,6 @@ int main(int argc, char *argv[])
         qDebug() << "Source:" << source;
         qDebug() << "Destination:" << dest;
         qDebug() << "Filter:" << filter;
-
-        ZipWordSearcher searcher;
-        auto result = searcher.findFilesWithWord(source, filter);
-        qDebug() << result;
-
-        ZipArchiveCreator creator;
-        creator.createResultArchive(source, result, dest);
-
         return 0;
     }
 
