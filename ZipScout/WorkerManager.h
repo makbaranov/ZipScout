@@ -23,6 +23,7 @@ public slots:
 signals:
     void searchCompleted(const QStringList& foundFiles);
     void archiveCreated(bool success);
+    void progressUpdated(int percent);
 
 private:
     QProcess m_process;

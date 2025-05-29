@@ -23,6 +23,9 @@ int main(int argc, char *argv[])
     parser.addOption({"filter", "Filter, word to search", "string"});
     parser.process(a);
 
+    WorkerManager manager;
+    manager.startWorker();
+
     if (parser.isSet("nogui")) {
         qDebug() << "Console mod";
 
@@ -40,9 +43,6 @@ int main(int argc, char *argv[])
         qDebug() << "Filter:" << filter;
 
         QStringList files;
-
-        WorkerManager manager;
-        manager.startWorker();
 
         QEventLoop loop;
         QObject::connect(&manager, &WorkerManager::searchCompleted, [&](const QStringList& files) {
