@@ -41,6 +41,8 @@ qt_add_executable(ZipScout
     mainwindow.ui
     WorkerManager.h
     WorkerManager.cpp
+    FoundFilesModel.h
+    FoundFilesModel.cpp
 )
 
 target_link_libraries(ZipScout PRIVATE

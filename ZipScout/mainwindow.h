@@ -7,6 +7,7 @@
 #include <QFileInfo>
 
 #include "WorkerManager.h"
+#include "FoundFilesModel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,6 +23,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    enum AppState {
+        Ready,
+        InProgress,
+        Done
+    };
+
 private slots:
     void onSelectFileClicked();
     void onCancelClicked();
@@ -36,12 +43,14 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    FoundFilesModel m_filesModel;
+
     WorkerManager m_workerManager;
     QString m_currentArchivePath;
     QStringList m_foundFiles;
     int m_totalFiles;
 
-    void setButtonsState(bool isWorking);
+    void setButtonsState(AppState state);
     void logMessage(const QString& msg);
 };
 #endif // MAINWINDOW_H

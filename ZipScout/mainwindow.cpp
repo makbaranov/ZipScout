@@ -6,6 +6,10 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->filesTableView->setModel(&m_filesModel);
+    ui->filesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->filesTableView->horizontalHeader()->setStretchLastSection(true);
+    ui->filesTableView->sortByColumn(FoundFilesModel::COLUMN_FILENAME, Qt::AscendingOrder);
 
     connect(ui->selectFileButton, &QPushButton::clicked, this, &MainWindow::onSelectFileClicked);
     connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::onCancelClicked);
@@ -19,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_workerManager.init();
 
-    setButtonsState(false);
+    setButtonsState(Ready);
     m_totalFiles = 0;
     logMessage("ZipScout is ready");
 }
@@ -43,10 +47,10 @@ void MainWindow::onSelectFileClicked()
         ui->fileLabel->setText("Analysing archive: " + fileName);
         logMessage("Analysis started: " + fileName);
 
-        setButtonsState(true);
+        setButtonsState(InProgress);
         ui->progressBar->setValue(0);
 
-        m_workerManager.searchInArchive(m_currentArchivePath, "secret"); //TODO find filter except f hardcode
+        m_workerManager.searchInArchive(m_currentArchivePath, "secret"); //TODO find filter instead of hardcode
     }
 }
 
@@ -69,9 +73,26 @@ void MainWindow::handleSearchResults(const QStringList& files)
     qDebug() << "handleSearchResults";
     m_foundFiles = files;
     logMessage(QString("%1 files found").arg(m_foundFiles.size()));
-    setButtonsState(false);
+    setButtonsState(m_foundFiles.isEmpty() ? Ready : Done);
 
-    //TODO fill table of files
+    QVector<FoundFile> foundFiles;
+    foundFiles.reserve(files.size());
+
+    for (const QString& filePath : files) {
+        FoundFile file;
+        file.include = true;
+        file.filePath = filePath;
+        file.size = 1024; //TODO replace dummy
+        file.modified = QDateTime::currentDateTime(); //TODO replace dummy
+
+        foundFiles.append(file);
+    }
+
+    m_filesModel.updateData(foundFiles);
+
+    ui->filesTableView->resizeColumnsToContents();
+    ui->filesTableView->horizontalHeader()->setSectionResizeMode(
+        FoundFilesModel::COLUMN_FILENAME, QHeaderView::Stretch);
 }
 
 void MainWindow::handleArchiveCreated(bool success)
@@ -87,7 +108,7 @@ void MainWindow::onCancelClicked()
 {
     logMessage("Operation cancelled");
     m_workerManager.stopWorker();
-    setButtonsState(false);
+    setButtonsState(Ready);
 }
 
 void MainWindow::onClearClicked()
@@ -96,6 +117,14 @@ void MainWindow::onClearClicked()
     ui->progressBar->setValue(0);
     ui->logTextEdit->clear();
     m_totalFiles = 0;
+
+    m_filesModel.updateData(QVector<FoundFile>());
+    m_currentArchivePath.clear();
+    m_foundFiles.clear();
+
+    ui->tabWidget->setCurrentIndex(0);
+    setButtonsState(Ready);
+
     logMessage("Cleared");
 }
 
@@ -106,7 +135,7 @@ void MainWindow::onSaveClicked()
 
         if (!savePath.isEmpty()) {
             logMessage("Creating archive...");
-            setButtonsState(true);
+            setButtonsState(Ready);
             m_workerManager.createArchive(m_currentArchivePath, m_foundFiles, savePath);
         }
     }
@@ -117,10 +146,13 @@ void MainWindow::logMessage(const QString& msg)
     ui->logTextEdit->appendPlainText(QDateTime::currentDateTime().toString() + ": " + msg);
 }
 
-void MainWindow::setButtonsState(bool isWorking)
+void MainWindow::setButtonsState(AppState state)
 {
-    ui->selectFileButton->setEnabled(!isWorking);
-    ui->cancelButton->setEnabled(isWorking);
-    ui->clearButton->setEnabled(!isWorking);
-    ui->saveButton->setEnabled(!isWorking && m_foundFiles.size() > 0);
+    ui->progressBar->setVisible(state != Ready);
+    ui->fileLabel->setVisible(state != Ready);
+
+    ui->selectFileButton->setEnabled(state == Ready);
+    ui->cancelButton->setEnabled(state == InProgress);
+    ui->clearButton->setEnabled(state != InProgress);
+    ui->saveButton->setEnabled(state == Done && !m_foundFiles.isEmpty());
 }
