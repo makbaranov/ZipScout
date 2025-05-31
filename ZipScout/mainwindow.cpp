@@ -52,7 +52,6 @@ void MainWindow::onSelectFileClicked()
 
 void MainWindow::handleSearchStarted(int totalFiles)
 {
-    qDebug() << "handleSearchStarted";
     logMessage("Search started");
     m_totalFiles = totalFiles;
     ui->progressBar->setMaximum(totalFiles);
@@ -61,7 +60,6 @@ void MainWindow::handleSearchStarted(int totalFiles)
 
 void MainWindow::handleFileProcessed(int current)
 {
-    qDebug() << "handleFileProcessed";
     ui->progressBar->setValue(current);
     logMessage(QString("Processed file %1/%2").arg(current).arg(m_totalFiles));
 }

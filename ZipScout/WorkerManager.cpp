@@ -39,7 +39,7 @@ void WorkerManager::init()
     const int maxPort = 5570;
     while (port <= maxPort) {
         try {
-            m_progressSocket.set(zmq::sockopt::linger, 0);
+            m_progressSocket.set(zmq::sockopt::rcvhwm, 1000);
             m_progressSocket.bind("tcp://*:" + std::to_string(port));
             qDebug() << "Successfully bound to port" << port;
             m_connected = true;
@@ -56,23 +56,29 @@ void WorkerManager::init()
 
     m_running = true;
     m_progressFuture = QtConcurrent::run([this]() {
+        zmq::pollitem_t items[] = {
+            {static_cast<void*>(m_progressSocket), 0, ZMQ_POLLIN, 0}
+        };
+
         while (m_running) {
-            zmq::message_t msg;
-            if (m_progressSocket.recv(msg, zmq::recv_flags::dontwait)) {
-                QString message = QString::fromStdString(std::string(static_cast<char*>(msg.data()), msg.size()));
-                QMetaObject::invokeMethod(QCoreApplication::instance(),
-                                          [this, message]() {
-                                              auto parts = message.split("|||");
-                                              if (parts[0] == "TOTAL_FILES") {
-                                                  emit searchStarted(parts[1].toInt());
-                                              }
-                                              else if (parts[0] == "FILE_PROCESSED") {
-                                                  emit fileProcessed(++m_processedFiles);
-                                              }
-                                          },
-                                          Qt::QueuedConnection);
+            zmq::poll(items, 1, 100);
+
+            if (items[0].revents & ZMQ_POLLIN) {
+                zmq::message_t msg;
+                if (m_progressSocket.recv(msg, zmq::recv_flags::none)) {
+                    QString message = QString::fromStdString(
+                        std::string(static_cast<char*>(msg.data()), msg.size())
+                        );
+
+                    auto parts = message.split("|||");
+                    if (parts[0] == "TOTAL_FILES") {
+                        emit searchStarted(parts[1].toInt());
+                    }
+                    else if (parts[0] == "FILE_PROCESSED") {
+                        emit fileProcessed(++m_processedFiles);
+                    }
+                }
             }
-            QThread::msleep(100);
         }
     });
 }
