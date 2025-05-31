@@ -1,8 +1,11 @@
 #include "ZipWordSearcher.h"
 
-ZipWordSearcher::ZipWordSearcher(QObject *parent)
-    : QObject(parent)
+ZipWordSearcher::ZipWordSearcher(QObject *parent) :
+    QObject(parent),
+    m_ctx(1),
+    m_progressSocket(m_ctx, zmq::socket_type::push)
 {
+    m_progressSocket.connect("tcp://localhost:5556");
 }
 
 QStringList ZipWordSearcher::findFilesWithWord(const QString& zipPath, const QString& searchWord)
@@ -19,6 +22,8 @@ QStringList ZipWordSearcher::findFilesWithWord(const QString& zipPath, const QSt
 
     QStringList fileNames = zip.getFileNameList();
     int totalFiles = fileNames.size();
+    m_progressSocket.send(zmq::buffer("TOTAL_FILES|||" + std::to_string(totalFiles)));
+
     int processedFiles = 0;
 
     for (const QString& fileName : fileNames) {
@@ -38,6 +43,8 @@ QStringList ZipWordSearcher::findFilesWithWord(const QString& zipPath, const QSt
         file.close();
 
         processedFiles++;
+        m_progressSocket.send(zmq::buffer(("FILE_PROCESSED|||" + fileName).toStdString()),  zmq::send_flags::none);
+
         emit fileProcessed(fileName);
         emit searchProgress(processedFiles, totalFiles);
     }

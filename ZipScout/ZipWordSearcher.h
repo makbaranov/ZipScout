@@ -8,6 +8,7 @@
 #include <QFuture>
 #include <QtConcurrent>
 
+#include <zmq.hpp>
 #include <quazip/quazip.h>
 #include <quazip/quazipfile.h>
 
@@ -33,4 +34,6 @@ private:
     bool searchWordInFile(QuaZipFile& file, const QString& searchWord);
 
     QString m_lastError;
+    zmq::context_t m_ctx;
+    zmq::socket_t m_progressSocket;
 };

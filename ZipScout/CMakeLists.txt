@@ -46,6 +46,7 @@ qt_add_executable(ZipScout
 target_link_libraries(ZipScout PRIVATE
     Qt6::Core
     Qt6::Widgets
+    Qt6::Concurrent
     libzmq
     cppzmq
 )

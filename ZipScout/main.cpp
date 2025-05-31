@@ -23,9 +23,6 @@ int main(int argc, char *argv[])
     parser.addOption({"filter", "Filter, word to search", "string"});
     parser.process(a);
 
-    WorkerManager manager;
-    manager.startWorker();
-
     if (parser.isSet("nogui")) {
         qDebug() << "Console mod";
 
@@ -33,6 +30,10 @@ int main(int argc, char *argv[])
             qCritical() << "Error: --source --destination and --filter must be provided for Console mod";
             return 1;
         }
+
+        WorkerManager manager;
+        manager.init();
+        manager.startWorker();
 
         QString source = parser.value("source");
         QString dest = parser.value("destination");

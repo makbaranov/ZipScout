@@ -14,9 +14,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(&m_workerManager, &WorkerManager::searchCompleted, this, &MainWindow::handleSearchResults);
     connect(&m_workerManager, &WorkerManager::archiveCreated, this, &MainWindow::handleArchiveCreated);
-    connect(&m_workerManager, &WorkerManager::progressUpdated, this, &MainWindow::handleProgressUpdate);
+    connect(&m_workerManager, &WorkerManager::searchStarted, this, &MainWindow::handleSearchStarted);
+    connect(&m_workerManager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
+
+    m_workerManager.init();
 
     setButtonsState(false);
+    m_totalFiles = 0;
     logMessage("ZipScout is ready");
 }
 
@@ -46,8 +50,25 @@ void MainWindow::onSelectFileClicked()
     }
 }
 
+void MainWindow::handleSearchStarted(int totalFiles)
+{
+    qDebug() << "handleSearchStarted";
+    logMessage("Search started");
+    m_totalFiles = totalFiles;
+    ui->progressBar->setMaximum(totalFiles);
+    ui->progressBar->setFormat("%v of %m files frocessed");
+}
+
+void MainWindow::handleFileProcessed(int current)
+{
+    qDebug() << "handleFileProcessed";
+    ui->progressBar->setValue(current);
+    logMessage(QString("Processed file %1/%2").arg(current).arg(m_totalFiles));
+}
+
 void MainWindow::handleSearchResults(const QStringList& files)
 {
+    qDebug() << "handleSearchResults";
     m_foundFiles = files;
     logMessage(QString("%1 files found").arg(m_foundFiles.size()));
     setButtonsState(false);
@@ -64,12 +85,6 @@ void MainWindow::handleArchiveCreated(bool success)
     }
 }
 
-void MainWindow::handleProgressUpdate(int progress)
-{
-    ui->progressBar->setValue(progress);
-    logMessage(QString("Progress: %1%").arg(progress));
-}
-
 void MainWindow::onCancelClicked()
 {
     logMessage("Operation cancelled");
@@ -82,6 +97,7 @@ void MainWindow::onClearClicked()
     ui->fileLabel->setText("Analysing archive:: N/A");
     ui->progressBar->setValue(0);
     ui->logTextEdit->clear();
+    m_totalFiles = 0;
     logMessage("Cleared");
 }
 

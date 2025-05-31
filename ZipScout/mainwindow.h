@@ -30,13 +30,16 @@ private slots:
 
     void handleSearchResults(const QStringList& files);
     void handleArchiveCreated(bool success);
-    void handleProgressUpdate(int progress);
+
+    void handleSearchStarted(int totalFiles);
+    void handleFileProcessed(int current);
 
 private:
     Ui::MainWindow *ui;
     WorkerManager m_workerManager;
     QString m_currentArchivePath;
     QStringList m_foundFiles;
+    int m_totalFiles;
 
     void setButtonsState(bool isWorking);
     void logMessage(const QString& msg);
