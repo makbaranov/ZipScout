@@ -130,14 +130,19 @@ void MainWindow::onClearClicked()
 
 void MainWindow::onSaveClicked()
 {
-    if (!m_foundFiles.isEmpty()) {
-        QString savePath = QFileDialog::getSaveFileName(this, "Save results", "", "ZIP Archives (*.zip)");
+    QStringList filesToSave = m_filesModel.getCheckedFiles();
 
-        if (!savePath.isEmpty()) {
-            logMessage("Creating archive...");
-            setButtonsState(Ready);
-            m_workerManager.createArchive(m_currentArchivePath, m_foundFiles, savePath);
-        }
+    if (filesToSave.isEmpty()) {
+        logMessage("No files selected for saving");
+        return;
+    }
+
+    QString savePath = QFileDialog::getSaveFileName(this, "Save results", "", "ZIP Archives (*.zip)");
+
+    if (!savePath.isEmpty()) {
+        logMessage(QString("Creating archive with %1 files...").arg(filesToSave.size()));
+        setButtonsState(Ready);
+        m_workerManager.createArchive(m_currentArchivePath, filesToSave, savePath);
     }
 }
 

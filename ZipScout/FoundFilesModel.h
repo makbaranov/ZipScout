@@ -37,7 +37,7 @@ public:
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
 
     void updateData(const QVector<FoundFile>& newData);
-    QVector<FoundFile> getCheckedFiles() const;
+    QStringList getCheckedFiles() const;
 
 private:
     QVector<FoundFile> m_files;

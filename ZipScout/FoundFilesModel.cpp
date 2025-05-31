@@ -121,12 +121,13 @@ void FoundFilesModel::updateData(const QVector<FoundFile>& newData)
     endResetModel();
 }
 
-QVector<FoundFile> FoundFilesModel::getCheckedFiles() const
+QStringList FoundFilesModel::getCheckedFiles() const
 {
-    QVector<FoundFile> result;
-    for (const auto &file : m_files) {
-        if (file.include)
-            result.append(file);
+    QStringList result;
+    for (const FoundFile& file : m_files) {
+        if (file.include) {
+            result << file.filePath;
+        }
     }
     return result;
 }
