@@ -65,30 +65,29 @@ void MainWindow::handleSearchStarted(int totalFiles)
     ui->progressBar->setFormat("%v of %m files frocessed");
 }
 
-void MainWindow::handleFileProcessed(const QStringList& files)
+void MainWindow::handleFileProcessed(const QStringList& batchFiles)
 {
-    qDebug() << "handleFileProcessed";
+    // qDebug() << "handleFileProcessed";
 
-    m_currentFile += files.size();
-
-    QVector<FoundFile> newFiles;
-    newFiles.reserve(files.size());
+    m_currentFile = batchFiles[0].toInt();
+    auto filesWithMetadata = batchFiles[1].split(";");
 
     QVector<FoundFile> foundFiles;
-    foundFiles.reserve(files.size());
+    foundFiles.reserve(filesWithMetadata.size());
 
-    for (const QString& filePath : files) {
+    for (const QString& item : filesWithMetadata) {
+        auto metadata = item.split(",");
         FoundFile file;
         file.include = true;
-        file.filePath = filePath;
-        file.size = 1024; //TODO replace dummy
-        file.modified = QDateTime::currentDateTime(); //TODO replace dummy
+        file.filePath = metadata[0];
+        file.size = metadata[1].toLongLong();
+        file.modified = QDateTime::fromString(metadata[2], Qt::ISODate);
 
-        newFiles.append(file);
+        foundFiles.append(file);
     }
 
-    m_filesModel.addFiles(newFiles);
-    m_foundFiles.append(files);
+    m_filesModel.addFiles(foundFiles);
+    m_foundFiles.append(filesWithMetadata);
 
     ui->filesTableView->resizeColumnsToContents();
     ui->filesTableView->horizontalHeader()->setSectionResizeMode(
@@ -101,6 +100,7 @@ void MainWindow::handleFileProcessed(const QStringList& files)
 
 void MainWindow::handleSearchCompleted()
 {
+    logMessage(QString("Files found: %1").arg(m_foundFiles.size()));
     setButtonsState(m_foundFiles.isEmpty() ? Ready : Done);
 }
 

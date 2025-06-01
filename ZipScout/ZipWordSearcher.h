@@ -21,7 +21,7 @@ public:
 
     void unpackFiles(const QString& zipPath);
     int getTotalFilesCount();
-    QStringList findFilesWithWord(const QString& searchWord);
+    void findFilesWithWord(const QString& searchWord);
 
 
     QString lastError() const { return m_lastError; }

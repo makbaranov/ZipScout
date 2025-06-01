@@ -39,7 +39,7 @@ private slots:
     void handleArchiveCreated(bool success);
 
     void handleSearchStarted(int totalFiles);
-    void handleFileProcessed(const QStringList& files);
+    void handleFileProcessed(const QStringList& batchFiles);
 
 private:
     Ui::MainWindow *ui;

@@ -81,15 +81,10 @@ void WorkerManager::progressListening()
                         std::string(static_cast<char*>(msg.data()), msg.size()));
 
                     auto parts = message.split("|||");
-                    if (parts[0] == "TOTAL_FILES") {
-                        emit searchStarted(parts[1].toInt());
-                    }
-                    else if (parts[0] == "FILE_PROCESSED") {
-                        m_processedFiles++;
-                        emit fileProcessed(parts[1].split(";"));
+                    if (parts[0] == "FILES_PROCESSED") {
+                        emit fileProcessed(parts[1].split("##"));
                     }
                     else if (parts[0].contains("FINISHED")) {
-                        qDebug() << "FINISHED";
                         emit searchCompleted();
                     }
                 }
