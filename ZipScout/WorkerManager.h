@@ -14,8 +14,8 @@ public:
     explicit WorkerManager(QObject *parent = nullptr);
     ~WorkerManager();
 
-    void init();
-
+    bool init();
+    void progressListening();
     void startWorker();
     void stopWorker();
     void sendCommand(const QString& cmd);
@@ -40,6 +40,7 @@ private:
     bool m_connected = false;
 
     QFuture<void> m_progressFuture;
-    int m_processedFiles;
+    std::atomic<int> m_processedFiles{0};
     std::atomic<bool> m_running{false};
+    bool m_initialized = false;
 };

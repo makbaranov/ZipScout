@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&m_workerManager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
 
     m_workerManager.init();
+    m_workerManager.startWorker();
 
     setButtonsState(Ready);
     m_totalFiles = 0;
