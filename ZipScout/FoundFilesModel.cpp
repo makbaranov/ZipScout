@@ -114,10 +114,10 @@ void FoundFilesModel::sort(int column, Qt::SortOrder order)
     endResetModel();
 }
 
-void FoundFilesModel::updateData(const QVector<FoundFile>& newData)
+void FoundFilesModel::clear()
 {
     beginResetModel();
-    m_files = newData;
+    m_files.clear();
     endResetModel();
 }
 
@@ -130,4 +130,13 @@ QStringList FoundFilesModel::getCheckedFiles() const
         }
     }
     return result;
+}
+
+void FoundFilesModel::addFiles(const QVector<FoundFile>& files)
+{
+    if (files.isEmpty()) return;
+
+    beginInsertRows(QModelIndex(), m_files.size(), m_files.size() + files.size() - 1);
+    m_files.append(files);
+    endInsertRows();
 }

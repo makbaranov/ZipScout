@@ -22,9 +22,6 @@ public:
                              const QStringList& filePaths,
                              const QString& resultZipPath);
 
-    QFuture<bool> createResultArchiveAsync(const QString& sourceZipPath,
-                                           const QStringList& filePaths,
-                                           const QString& resultZipPath);
     QString lastError() const { return m_lastError; }
 
 signals:

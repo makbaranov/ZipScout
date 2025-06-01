@@ -19,21 +19,22 @@ class ZipWordSearcher : public QObject
 public:
     explicit ZipWordSearcher(QObject *parent = nullptr);
 
-    QStringList findFilesWithWord(const QString& zipPath, const QString& searchWord);
-    QFuture<QStringList> findFilesWithWordAsync(const QString& zipPath, const QString& searchWord);
+    void unpackFiles(const QString& zipPath);
+    int getTotalFilesCount();
+    QStringList findFilesWithWord(const QString& searchWord);
+
 
     QString lastError() const { return m_lastError; }
 
 signals:
-    void fileProcessed(const QString& fileName);
-    void searchProgress(int processed, int total);
-    void searchFinished(const QStringList& foundFiles);
     void errorOccurred(const QString& error);
 
 private:
     bool searchWordInFile(QuaZipFile& file, const QString& searchWord);
 
+    QStringList m_fileNames;
     QString m_lastError;
     zmq::context_t m_ctx;
     zmq::socket_t m_progressSocket;
+    QuaZip m_zip;
 };

@@ -46,13 +46,13 @@ int main(int argc, char *argv[])
         QStringList files;
 
         QEventLoop loop;
-        QObject::connect(&manager, &WorkerManager::searchCompleted, [&](const QStringList& files) {
-            manager.createArchive(source, files, dest);
-        });
-        QObject::connect(&manager, &WorkerManager::archiveCreated, [&](bool success) {
-            qDebug() << (success ? "Done" : "Error");
-            loop.quit();
-        });
+        // QObject::connect(&manager, &WorkerManager::searchCompleted, [&](const QStringList& files) {
+        //     manager.createArchive(source, files, dest);
+        // });
+        // QObject::connect(&manager, &WorkerManager::archiveCreated, [&](bool success) {
+        //     qDebug() << (success ? "Done" : "Error");
+        //     loop.quit();
+        // });
 
         manager.searchInArchive(source, filter);
         loop.exec();

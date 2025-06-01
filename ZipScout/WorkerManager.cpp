@@ -86,7 +86,11 @@ void WorkerManager::progressListening()
                     }
                     else if (parts[0] == "FILE_PROCESSED") {
                         m_processedFiles++;
-                        emit fileProcessed(m_processedFiles);
+                        emit fileProcessed(parts[1].split(";"));
+                    }
+                    else if (parts[0].contains("FINISHED")) {
+                        qDebug() << "FINISHED";
+                        emit searchCompleted();
                     }
                 }
             }
@@ -133,7 +137,10 @@ void WorkerManager::handleResponse(const QString& cmd, const QString& response) 
     qDebug() << "Worker response:" << response;
 
     if (cmd.startsWith("SEARCH")) {
-        emit searchCompleted(response.split(";"));
+        auto message = response.split("|||");
+        if (message[0] == "STARTED" && !message[1].isEmpty()){
+            emit searchStarted(message[1].toInt());
+        }
     }
     else if (cmd.startsWith("CREATE_ARCHIVE")) {
         emit archiveCreated(response == "OK");

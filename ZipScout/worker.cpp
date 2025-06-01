@@ -42,9 +42,10 @@ int main(int argc, char *argv[]) {
             auto parts = msg.split(DELIMITER);
             if (parts.size() == 3) {
                 ZipWordSearcher searcher;
-                auto result = searcher.findFilesWithWord(parts[1], parts[2]);
-                QString response = result.join(";");
+                searcher.unpackFiles(parts[1]);
+                QString response("STARTED|||" + QString::number(searcher.getTotalFilesCount()));
                 socket.send(zmq::buffer(response.toStdString()), zmq::send_flags::none);
+                searcher.findFilesWithWord(parts[2]);
             }
         }
         else if (msg.startsWith(CREATE_ARCHIVE_CMD)) {

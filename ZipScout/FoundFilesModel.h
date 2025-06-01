@@ -27,17 +27,21 @@ public:
 
     explicit FoundFilesModel(QObject *parent = nullptr);
 
-    // QAbstractItemModel interface
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
     QVariant data(const QModelIndex &index, int role) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
 
-    void updateData(const QVector<FoundFile>& newData);
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
+    void clear();
+
     QStringList getCheckedFiles() const;
+
+    void addFiles(const QVector<FoundFile>& files);
 
 private:
     QVector<FoundFile> m_files;

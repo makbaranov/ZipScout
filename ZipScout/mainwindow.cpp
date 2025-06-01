@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);
     connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::onSaveClicked);
 
-    connect(&m_workerManager, &WorkerManager::searchCompleted, this, &MainWindow::handleSearchResults);
+    connect(&m_workerManager, &WorkerManager::searchCompleted, this, &MainWindow::handleSearchCompleted);
     connect(&m_workerManager, &WorkerManager::archiveCreated, this, &MainWindow::handleArchiveCreated);
     connect(&m_workerManager, &WorkerManager::searchStarted, this, &MainWindow::handleSearchStarted);
     connect(&m_workerManager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setButtonsState(Ready);
     m_totalFiles = 0;
+    m_currentFile = 0;
     logMessage("ZipScout is ready");
 }
 
@@ -58,23 +59,20 @@ void MainWindow::onSelectFileClicked()
 void MainWindow::handleSearchStarted(int totalFiles)
 {
     logMessage("Search started");
+    m_currentFile = 0;
     m_totalFiles = totalFiles;
     ui->progressBar->setMaximum(totalFiles);
     ui->progressBar->setFormat("%v of %m files frocessed");
 }
 
-void MainWindow::handleFileProcessed(int current)
+void MainWindow::handleFileProcessed(const QStringList& files)
 {
-    ui->progressBar->setValue(current);
-    logMessage(QString("Processed file %1/%2").arg(current).arg(m_totalFiles));
-}
+    qDebug() << "handleFileProcessed";
 
-void MainWindow::handleSearchResults(const QStringList& files)
-{
-    qDebug() << "handleSearchResults";
-    m_foundFiles = files;
-    logMessage(QString("%1 files found").arg(m_foundFiles.size()));
-    setButtonsState(m_foundFiles.isEmpty() ? Ready : Done);
+    m_currentFile += files.size();
+
+    QVector<FoundFile> newFiles;
+    newFiles.reserve(files.size());
 
     QVector<FoundFile> foundFiles;
     foundFiles.reserve(files.size());
@@ -86,14 +84,24 @@ void MainWindow::handleSearchResults(const QStringList& files)
         file.size = 1024; //TODO replace dummy
         file.modified = QDateTime::currentDateTime(); //TODO replace dummy
 
-        foundFiles.append(file);
+        newFiles.append(file);
     }
 
-    m_filesModel.updateData(foundFiles);
+    m_filesModel.addFiles(newFiles);
+    m_foundFiles.append(files);
 
     ui->filesTableView->resizeColumnsToContents();
     ui->filesTableView->horizontalHeader()->setSectionResizeMode(
         FoundFilesModel::COLUMN_FILENAME, QHeaderView::Stretch);
+
+    ui->progressBar->setValue(m_currentFile);
+    logMessage(QString("Processed file %1/%2").arg(m_currentFile).arg(m_totalFiles));
+}
+
+
+void MainWindow::handleSearchCompleted()
+{
+    setButtonsState(m_foundFiles.isEmpty() ? Ready : Done);
 }
 
 void MainWindow::handleArchiveCreated(bool success)
@@ -119,7 +127,7 @@ void MainWindow::onClearClicked()
     ui->logTextEdit->clear();
     m_totalFiles = 0;
 
-    m_filesModel.updateData(QVector<FoundFile>());
+    m_filesModel.clear();
     m_currentArchivePath.clear();
     m_foundFiles.clear();
 

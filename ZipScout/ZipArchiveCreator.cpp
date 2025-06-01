@@ -51,15 +51,6 @@ bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const 
     return success;
 }
 
-QFuture<bool> ZipArchiveCreator::createResultArchiveAsync(const QString& sourceZipPath,
-                                                        const QStringList& filePaths,
-                                                        const QString& resultZipPath)
-{
-    return QtConcurrent::run([this, sourceZipPath, filePaths, resultZipPath]() {
-        return createResultArchive(sourceZipPath, filePaths, resultZipPath);
-    });
-}
-
 bool ZipArchiveCreator::copyFileToArchive(QuaZip& sourceZip, QuaZip& destZip, const QString& fileName)
 {
     if (!sourceZip.setCurrentFile(fileName)) {

@@ -35,11 +35,11 @@ private slots:
     void onClearClicked();
     void onSaveClicked();
 
-    void handleSearchResults(const QStringList& files);
+    void handleSearchCompleted();
     void handleArchiveCreated(bool success);
 
     void handleSearchStarted(int totalFiles);
-    void handleFileProcessed(int current);
+    void handleFileProcessed(const QStringList& files);
 
 private:
     Ui::MainWindow *ui;
@@ -49,6 +49,7 @@ private:
     QString m_currentArchivePath;
     QStringList m_foundFiles;
     int m_totalFiles;
+    int m_currentFile;
 
     void setButtonsState(AppState state);
     void logMessage(const QString& msg);

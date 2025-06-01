@@ -8,30 +8,36 @@ ZipWordSearcher::ZipWordSearcher(QObject *parent) :
     m_progressSocket.connect("tcp://localhost:5556");
 }
 
-QStringList ZipWordSearcher::findFilesWithWord(const QString& zipPath, const QString& searchWord)
+void ZipWordSearcher::unpackFiles(const QString& zipPath)
+{
+    m_zip.setZipName(zipPath);
+    if (!m_zip.open(QuaZip::mdUnzip)) {
+        m_lastError = QString("Couldnot open arhive: %1").arg(m_zip.getZipError());
+        emit errorOccurred(m_lastError);
+        return;
+    }
+
+    m_fileNames = m_zip.getFileNameList();
+}
+
+int ZipWordSearcher::getTotalFilesCount() {
+    return m_fileNames.size();
+}
+
+QStringList ZipWordSearcher::findFilesWithWord(const QString& searchWord)
 {
     QStringList foundFiles;
     m_lastError.clear();
 
-    QuaZip zip(zipPath);
-    if (!zip.open(QuaZip::mdUnzip)) {
-        m_lastError = QString("Couldnot open arhive: %1").arg(zip.getZipError());
-        emit errorOccurred(m_lastError);
-        return foundFiles;
-    }
-
-    QStringList fileNames = zip.getFileNameList();
-    int totalFiles = fileNames.size();
-    m_progressSocket.send(zmq::buffer("TOTAL_FILES|||" + std::to_string(totalFiles)));
-
+    int totalFiles = getTotalFilesCount();
     int processedFiles = 0;
 
-    for (const QString& fileName : fileNames) {
-        if (!zip.setCurrentFile(fileName)) {
+    for (const QString& fileName : m_fileNames) {
+        if (!m_zip.setCurrentFile(fileName)) {
             continue;
         }
 
-        QuaZipFile file(&zip);
+        QuaZipFile file(&m_zip);
         if (!file.open(QIODevice::ReadOnly)) {
             continue;
         }
@@ -44,22 +50,12 @@ QStringList ZipWordSearcher::findFilesWithWord(const QString& zipPath, const QSt
 
         processedFiles++;
         m_progressSocket.send(zmq::buffer(("FILE_PROCESSED|||" + fileName).toStdString()),  zmq::send_flags::none);
-
-        emit fileProcessed(fileName);
-        emit searchProgress(processedFiles, totalFiles);
     }
 
-    zip.close();
-    emit searchFinished(foundFiles);
-    return foundFiles;
-}
+    m_zip.close();
 
-QFuture<QStringList> ZipWordSearcher::findFilesWithWordAsync(const QString& zipPath,
-                                                             const QString& searchWord)
-{
-    return QtConcurrent::run([this, zipPath, searchWord]() {
-        return findFilesWithWord(zipPath, searchWord);
-    });
+    m_progressSocket.send(zmq::buffer("FINISHED"), zmq::send_flags::none);
+    return foundFiles;
 }
 
 bool ZipWordSearcher::searchWordInFile(QuaZipFile& file, const QString& searchWord)

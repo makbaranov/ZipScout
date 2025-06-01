@@ -28,8 +28,8 @@ public slots:
 
 signals:
     void searchStarted(int totalFiles);
-    void fileProcessed(int current);
-    void searchCompleted(const QStringList& foundFiles);
+    void fileProcessed(const QStringList& files);
+    void searchCompleted();
     void archiveCreated(bool success);
 
 private:
