@@ -12,12 +12,33 @@
   </property>
   <property name="windowTitle">
    <string>ZipScout</string>
-  </property>
+  </property> 
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <layout class="QHBoxLayout" name="searchLayout">
+      <item>
+       <widget class="QLabel" name="searchLabel">
+        <property name="text">
+         <string>Search word:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="searchWordEdit">
+        <property name="text">
+         <string>secret</string>
+        </property>
+        <property name="placeholderText">
+         <string>Enter word to search</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
+	  <property name="currentIndex">
        <number>0</number>
       </property>
       <widget class="QWidget" name="summaryTab">

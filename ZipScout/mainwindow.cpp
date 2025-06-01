@@ -51,7 +51,7 @@ void MainWindow::onSelectFileClicked()
         setButtonsState(InProgress);
         ui->progressBar->setValue(0);
 
-        m_workerManager.searchInArchive(m_currentArchivePath, "secret"); //TODO find filter instead of hardcode
+        m_workerManager.searchInArchive(m_currentArchivePath, ui->searchWordEdit->text());
     }
 }
 
