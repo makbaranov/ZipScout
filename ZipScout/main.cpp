@@ -24,15 +24,18 @@ int main(int argc, char *argv[])
     parser.process(a);
 
     if (parser.isSet("nogui")) {
-        qDebug() << "Console mod";
+        qDebug() << "Console mode";
 
-        if (!parser.isSet("source") || !parser.isSet("destination")) {
-            qCritical() << "Error: --source --destination and --filter must be provided for Console mod";
+        if (!parser.isSet("source") || !parser.isSet("destination") || !parser.isSet("filter")) {
+            qCritical() << "Error: --source, --destination and --filter must be provided for Console mode";
             return 1;
         }
 
         WorkerManager manager;
-        manager.init();
+        if (!manager.init()) {
+            qCritical() << "Failed to initialize worker";
+            return 1;
+        }
         manager.startWorker();
 
         QString source = parser.value("source");
@@ -43,33 +46,59 @@ int main(int argc, char *argv[])
         qDebug() << "Destination:" << dest;
         qDebug() << "Filter:" << filter;
 
-        QStringList files;
-
         QEventLoop loop;
+        QStringList foundFiles;
+        bool operationSuccess = false;
+
+        QObject::connect(&manager, &WorkerManager::searchStarted, [](int totalFiles) {
+            qDebug() << "Search started. Total files:" << totalFiles;
+        });
+
+        QObject::connect(&manager, &WorkerManager::creatingProcessed, [&foundFiles](int filesProcessed) {
+            qDebug() << "Archived" << filesProcessed << "/" << foundFiles.size() << "files";
+        });
 
         QObject::connect(&manager, &WorkerManager::searchCompleted, [&]() {
-            qDebug() << "searchCompleted";
+            qDebug() << "Search completed. Starting archive creation...";
+            manager.createArchive(source, foundFiles, dest);
+        });
+
+        QObject::connect(&manager, &WorkerManager::archiveCreated, [&]() {
+            qDebug() << "Archive created successfully";
+            operationSuccess = true;
             loop.quit();
         });
-        // QObject::connect(&manager, &WorkerManager::archiveCreated, this, &MainWindow::handleArchiveCreated);
-        // QObject::connect(&manager, &WorkerManager::searchStarted, this, &MainWindow::handleSearchStarted);
-        // QObject::connect(&manager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
 
-        // QObject::connect(&manager, &WorkerManager::searchCompleted, [&](const QStringList& files) {
-        //     manager.createArchive(source, files, dest);
-        // });
-        // QObject::connect(&manager, &WorkerManager::archiveCreated, [&](bool success) {
-        //     qDebug() << (success ? "Done" : "Error");
-        //     loop.quit();
-        // });
+        QObject::connect(&manager, &WorkerManager::workerFailed, [&](const QString& error) {
+            qCritical() << "Error:" << error;
+            loop.quit();
+        });
+
+        QObject::connect(&manager, &WorkerManager::fileProcessed, [&](const QStringList& batch) {
+            auto progress = batch[0].toInt();
+            auto files = batch[1].split(";");
+            auto foundInBatch = files.size();
+            for (auto &file : files) {
+                file = file.split(",")[0];
+            }
+            foundFiles.append(files);
+            qDebug() << "Processed:" << progress << "files | Found:" << foundInBatch << "in batch";
+        });
 
         manager.searchInArchive(source, filter);
         loop.exec();
+
+        if (!operationSuccess) {
+            qCritical() << "Operation failed";
+            return 1;
+        }
+
+        qDebug() << "Done";
         return 0;
     }
 
     if (parser.isSet("test")) {
-        qDebug() << "Test mod";
+        qDebug() << "Test mode";
     }
 
     MainWindow w;
