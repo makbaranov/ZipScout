@@ -116,8 +116,7 @@ void MainWindow::handleArchiveCreated(bool success)
 void MainWindow::onCancelClicked()
 {
     logMessage("Operation cancelled");
-    m_workerManager.stopWorker();
-    setButtonsState(Ready);
+    m_workerManager.cancelOperation();
 }
 
 void MainWindow::onClearClicked()

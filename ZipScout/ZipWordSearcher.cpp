@@ -29,12 +29,17 @@ void ZipWordSearcher::findFilesWithWord(const QString& searchWord)
     QStringList foundFilesWithMetaData;
     m_lastError.clear();
 
-    const int BATCH_SIZE = 1000;
+    const int BATCH_SIZE = 10000;
     int totalFiles = m_fileNames.size();
     int processedFiles = 0;
     int batchProcessed = 0;
 
+    m_canceled.store(false);
     for (const QString& fileName : m_fileNames) {
+        if (m_canceled.load()) {
+            break;
+        }
+
         if (!m_zip.setCurrentFile(fileName)) {
             continue;
         }
@@ -85,6 +90,13 @@ void ZipWordSearcher::findFilesWithWord(const QString& searchWord)
     );
 }
 
+QFuture<void> ZipWordSearcher::findFilesWithWordAsync(const QString& searchWord)
+{
+    return QtConcurrent::run([this, searchWord]() {
+        return findFilesWithWord(searchWord);
+    });
+}
+
 bool ZipWordSearcher::searchWordInFile(QuaZipFile& file, const QString& searchWord)
 {
     QTextStream stream(&file);
@@ -99,3 +111,15 @@ bool ZipWordSearcher::searchWordInFile(QuaZipFile& file, const QString& searchWo
 
     return false;
 }
+
+QString ZipWordSearcher::lastError() const
+{
+    return m_lastError;
+}
+
+void ZipWordSearcher::cancel()
+{
+    qDebug() << "cancel called";
+    m_canceled.store(true);
+}
+

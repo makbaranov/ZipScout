@@ -6,10 +6,6 @@
 #include "ZipArchiveCreator.h"
 
 int main(int argc, char *argv[]) {
-    const QString SEARCH_CMD = "SEARCH";
-    const QString CREATE_ARCHIVE_CMD = "CREATE_ARCHIVE";
-    const QString DELIMITER = "|||";
-
     QCoreApplication app(argc, argv);
 
     zmq::context_t ctx(1);
@@ -17,6 +13,8 @@ int main(int argc, char *argv[]) {
     socket.bind("tcp://*:5555");
 
     qDebug() << "Worker ready. Listening on tcp://*:5555";
+
+    ZipWordSearcher searcher;
 
     while (true) {
         zmq::message_t request;
@@ -34,22 +32,25 @@ int main(int argc, char *argv[]) {
             socket.send(zmq::buffer("PONG"), zmq::send_flags::none);
         }
         else if (msg == "STOP") {
-            socket.send(zmq::buffer("STOP_ACK"), zmq::send_flags::none);
+            socket.send(zmq::buffer("STOPED"), zmq::send_flags::none);
             QMetaObject::invokeMethod(&app, "quit", Qt::QueuedConnection);
             break;
         }
-        else if (msg.startsWith(SEARCH_CMD)) {
-            auto parts = msg.split(DELIMITER);
+        else if (msg == "CANCEL") {
+            socket.send(zmq::buffer("CANCELED"), zmq::send_flags::none);
+            searcher.cancel();
+        }
+        else if (msg.startsWith("SEARCH")) {
+            auto parts = msg.split("|||");
             if (parts.size() == 3) {
-                ZipWordSearcher searcher;
                 searcher.unpackFiles(parts[1]);
                 QString response("STARTED|||" + QString::number(searcher.getTotalFilesCount()));
                 socket.send(zmq::buffer(response.toStdString()), zmq::send_flags::none);
-                searcher.findFilesWithWord(parts[2]);
+                searcher.findFilesWithWordAsync(parts[2]);
             }
         }
-        else if (msg.startsWith(CREATE_ARCHIVE_CMD)) {
-            auto parts = msg.split(DELIMITER);
+        else if (msg.startsWith("CREATE_ARCHIVE")) {
+            auto parts = msg.split("|||");
             if (parts.size() == 4) {
                 ZipArchiveCreator creator;
                 bool success = creator.createResultArchive(parts[1], parts[2].split(";"), parts[3]);

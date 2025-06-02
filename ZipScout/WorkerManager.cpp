@@ -13,6 +13,7 @@ WorkerManager::WorkerManager(QObject *parent) :
 
 WorkerManager::~WorkerManager() {
     qDebug() << "WorkerManager destructor called";
+    stopWorker();
     m_running = false;
     m_progressFuture.waitForFinished();
     m_progressSocket.close();
@@ -116,6 +117,11 @@ void WorkerManager::startWorker() {
 void WorkerManager::stopWorker() {
     sendCommand("STOP");
     m_process.waitForFinished(1000);
+}
+
+void WorkerManager::cancelOperation() {
+    qDebug() << "cancelOpearation";
+    sendCommand("CANCEL");
 }
 
 void WorkerManager::sendCommand(const QString& cmd) {

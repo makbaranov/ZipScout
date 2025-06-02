@@ -22,9 +22,10 @@ public:
     void unpackFiles(const QString& zipPath);
     int getTotalFilesCount();
     void findFilesWithWord(const QString& searchWord);
+    QFuture<void> findFilesWithWordAsync(const QString& searchWord);
 
-
-    QString lastError() const { return m_lastError; }
+    void cancel();
+    QString lastError() const;
 
 signals:
     void errorOccurred(const QString& error);
@@ -37,4 +38,5 @@ private:
     zmq::context_t m_ctx;
     zmq::socket_t m_progressSocket;
     QuaZip m_zip;
+    std::atomic<bool> m_canceled;
 };

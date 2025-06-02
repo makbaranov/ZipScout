@@ -18,6 +18,7 @@ public:
     void progressListening();
     void startWorker();
     void stopWorker();
+    void cancelOperation();
     void sendCommand(const QString& cmd);
     void handleResponse(const QString& cmd, const QString& response);
     void testConnection();
