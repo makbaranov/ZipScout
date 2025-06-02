@@ -88,6 +88,12 @@ void WorkerManager::progressListening()
                     else if (parts[0].contains("FINISHED")) {
                         emit searchCompleted();
                     }
+                    else if (parts[0].contains("CREATING_PROGRESS")) {
+                        emit creatingProcessed(parts[1].toInt());
+                    }
+                    else if (parts[0].contains("CREATING_DONE")) {
+                        emit archiveCreated();
+                    }
                 }
             }
         }
@@ -144,7 +150,8 @@ void WorkerManager::handleResponse(const QString& cmd, const QString& response) 
         }
     }
     else if (cmd.startsWith("CREATE_ARCHIVE")) {
-        emit archiveCreated(response == "OK");
+        if (response.contains("STARTED"))
+            emit creatingStarted();
     }
 }
 

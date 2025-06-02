@@ -53,9 +53,8 @@ int main(int argc, char *argv[]) {
             auto parts = msg.split("|||");
             if (parts.size() == 4) {
                 ZipArchiveCreator creator;
-                bool success = creator.createResultArchive(parts[1], parts[2].split(";"), parts[3]);
-                std::string to_send = success ? "OK" : "FAIL";
-                socket.send(zmq::buffer(to_send), zmq::send_flags::none);
+                socket.send(zmq::buffer("STARTED"), zmq::send_flags::none);
+                creator.createResultArchive(parts[1], parts[2].split(";"), parts[3]);
             }
         }
         else {

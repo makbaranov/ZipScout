@@ -29,9 +29,12 @@ public slots:
 
 signals:
     void searchStarted(int totalFiles);
+    void creatingStarted();
     void fileProcessed(const QStringList& batchFiles);
+    void creatingProcessed(int filesProcessed);
     void searchCompleted();
-    void archiveCreated(bool success);
+    void archiveCreated();
+
 
 private:
     QProcess m_process;

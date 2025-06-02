@@ -36,10 +36,12 @@ private slots:
     void onSaveClicked();
 
     void handleSearchCompleted();
-    void handleArchiveCreated(bool success);
+    void handleArchiveCreated();
 
-    void handleSearchStarted(int totalFiles);
+    void handleCreatingStarted();
+    void handleProgressStarted(int totalFiles);
     void handleFileProcessed(const QStringList& batchFiles);
+    void handleCreatingProcessed(int filesProcessed);
 
 private:
     Ui::MainWindow *ui;
@@ -50,6 +52,7 @@ private:
     QStringList m_foundFiles;
     int m_totalFiles;
     int m_currentFile;
+    int m_numberFilesToSave;
 
     void setButtonsState(AppState state);
     void logMessage(const QString& msg);

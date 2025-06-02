@@ -1,8 +1,11 @@
 #include "ZipArchiveCreator.h"
 
-ZipArchiveCreator::ZipArchiveCreator(QObject *parent)
-    : QObject(parent)
+ZipArchiveCreator::ZipArchiveCreator(QObject *parent) :
+    QObject(parent),
+    m_ctx(1),
+    m_progressSocket(m_ctx, zmq::socket_type::push)
 {
+    m_progressSocket.connect("tcp://localhost:5556");
 }
 
 bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const QStringList& filePaths,
@@ -21,6 +24,7 @@ bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const 
         return false;
     }
 
+    const int BATCH_SIZE = 5000;
     int totalFiles = filePaths.size();
     int processedFiles = 0;
     bool success = true;
@@ -32,6 +36,11 @@ bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const 
         }
 
         processedFiles++;
+
+        if (processedFiles % BATCH_SIZE == 0 || processedFiles == totalFiles) {
+            QString progressMsg = QString("CREATING_PROGRESS|||%1").arg(processedFiles);
+            m_progressSocket.send(zmq::buffer(progressMsg.toStdString()), zmq::send_flags::dontwait);
+        }
     }
 
     destZip.close();
@@ -42,6 +51,7 @@ bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const 
 
     sourceZip.close();
 
+    m_progressSocket.send(zmq::buffer("CREATING_DONE"), zmq::send_flags::dontwait);
     return success;
 }
 

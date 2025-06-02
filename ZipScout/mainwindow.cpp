@@ -18,8 +18,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(&m_workerManager, &WorkerManager::searchCompleted, this, &MainWindow::handleSearchCompleted);
     connect(&m_workerManager, &WorkerManager::archiveCreated, this, &MainWindow::handleArchiveCreated);
-    connect(&m_workerManager, &WorkerManager::searchStarted, this, &MainWindow::handleSearchStarted);
+    connect(&m_workerManager, &WorkerManager::searchStarted, this, &MainWindow::handleProgressStarted);
+    connect(&m_workerManager, &WorkerManager::creatingStarted, this, &MainWindow::handleCreatingStarted);
     connect(&m_workerManager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
+    connect(&m_workerManager, &WorkerManager::creatingProcessed, this, &MainWindow::handleCreatingProcessed);
 
     m_workerManager.init();
     m_workerManager.startWorker();
@@ -53,16 +55,27 @@ void MainWindow::onSelectFileClicked()
         ui->progressBar->setValue(0);
 
         m_workerManager.searchInArchive(m_currentArchivePath, ui->searchWordEdit->text());
+        logMessage("Search started");
     }
 }
 
-void MainWindow::handleSearchStarted(int totalFiles)
+void MainWindow::handleCreatingStarted()
 {
-    logMessage("Search started");
+    handleProgressStarted(m_numberFilesToSave);
+}
+
+void MainWindow::handleProgressStarted(int totalFiles)
+{
     m_currentFile = 0;
     m_totalFiles = totalFiles;
     ui->progressBar->setMaximum(totalFiles);
-    ui->progressBar->setFormat("%v of %m files frocessed");
+    ui->progressBar->setFormat("%v of %m files processed");
+}
+
+void MainWindow::handleCreatingProcessed(int filesProcessed) {
+    m_currentFile = filesProcessed;
+    ui->progressBar->setValue(m_currentFile);
+    logMessage(QString("Processed file %1/%2").arg(m_currentFile).arg(m_numberFilesToSave));
 }
 
 void MainWindow::handleFileProcessed(const QStringList& batchFiles)
@@ -102,13 +115,11 @@ void MainWindow::handleSearchCompleted()
     setButtonsState(m_foundFiles.isEmpty() ? Ready : Done);
 }
 
-void MainWindow::handleArchiveCreated(bool success)
+void MainWindow::handleArchiveCreated()
 {
-    if (success) {
-        logMessage("Archive succesfully created");
-    } else {
-        logMessage("Error occured while creating archive");
-    }
+    logMessage("Archive succesfully created");
+    setButtonsState(Done);
+    ui->fileLabel->setText(ui->fileLabel->text() + " is done!");
 }
 
 void MainWindow::onCancelClicked()
@@ -137,6 +148,7 @@ void MainWindow::onClearClicked()
 void MainWindow::onSaveClicked()
 {
     QStringList filesToSave = m_filesModel.getCheckedFiles();
+    m_numberFilesToSave = filesToSave.size();
 
     if (filesToSave.isEmpty()) {
         logMessage("No files selected for saving");
@@ -147,7 +159,11 @@ void MainWindow::onSaveClicked()
 
     if (!savePath.isEmpty()) {
         logMessage(QString("Creating archive with %1 files...").arg(filesToSave.size()));
-        setButtonsState(Ready);
+        setButtonsState(InProgress);
+
+        ui->fileLabel->setText("Creating archive: " + savePath);
+        ui->progressBar->setValue(0);
+
         m_workerManager.createArchive(m_currentArchivePath, filesToSave, savePath);
     }
 }
