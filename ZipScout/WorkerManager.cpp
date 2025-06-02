@@ -58,6 +58,19 @@ bool WorkerManager::init()
                 qDebug() << "Worker finished, code:" << exitCode << "status:" << status;
             });
 
+    connect(&m_process, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
+        qCritical() << "Worker process error:" << error;
+        emit workerFailed("Process error: " + QString::number(error));
+    });
+
+    connect(&m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            [this](int exitCode, QProcess::ExitStatus status) {
+                if (status == QProcess::CrashExit) {
+                    qCritical() << "Worker crashed! Exit code:" << exitCode;
+                    emit workerFailed("Worker crashed with code: " + QString::number(exitCode));
+                }
+            });
+
     progressListening();
 
     m_initialized = true;
@@ -116,13 +129,30 @@ void WorkerManager::createArchive(const QString& sourceZip, const QStringList& f
 void WorkerManager::startWorker() {
     if (m_process.state() == QProcess::NotRunning) {
         m_process.start("./ZipScoutWorker");
+
+        if (!m_process.waitForStarted(3000)) {
+            qCritical() << "Failed to start worker process";
+            emit workerFailed("Process failed to start");
+            return;
+        }
+
         QTimer::singleShot(500, this, &WorkerManager::testConnection);
     }
 }
 
+
 void WorkerManager::stopWorker() {
     sendCommand("STOP");
     m_process.waitForFinished(1000);
+}
+
+void WorkerManager::killWorker() {
+    if (m_process.state() == QProcess::Running) {
+        m_process.terminate();
+        if (!m_process.waitForFinished(1000)) {
+            m_process.kill();
+        }
+    }
 }
 
 void WorkerManager::cancelOperation() {
@@ -156,5 +186,5 @@ void WorkerManager::handleResponse(const QString& cmd, const QString& response) 
 }
 
 void WorkerManager::testConnection() {
-    sendCommand("PING");
+    sendCommand("HELLO");
 }

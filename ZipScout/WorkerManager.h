@@ -18,6 +18,7 @@ public:
     void progressListening();
     void startWorker();
     void stopWorker();
+    void killWorker();
     void cancelOperation();
     void sendCommand(const QString& cmd);
     void handleResponse(const QString& cmd, const QString& response);
@@ -34,6 +35,7 @@ signals:
     void creatingProcessed(int filesProcessed);
     void searchCompleted();
     void archiveCreated();
+    void workerFailed(const QString& error);
 
 
 private:

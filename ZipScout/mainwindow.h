@@ -43,6 +43,8 @@ private slots:
     void handleFileProcessed(const QStringList& batchFiles);
     void handleCreatingProcessed(int filesProcessed);
 
+    void handleWorkerFailed(const QString& error);
+
 private:
     Ui::MainWindow *ui;
     FoundFilesModel m_filesModel;

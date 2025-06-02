@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
 
         qDebug() << "Received command:" << msg;
 
-        if (msg == "PING") {
-            socket.send(zmq::buffer("PONG"), zmq::send_flags::none);
+        if (msg == "HELLO") {
+            socket.send(zmq::buffer("WORLD"), zmq::send_flags::none);
         }
         else if (msg == "STOP") {
             socket.send(zmq::buffer("STOPED"), zmq::send_flags::none);

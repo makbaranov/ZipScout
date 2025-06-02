@@ -23,6 +23,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&m_workerManager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
     connect(&m_workerManager, &WorkerManager::creatingProcessed, this, &MainWindow::handleCreatingProcessed);
 
+    connect(&m_workerManager, &WorkerManager::workerFailed, this, &MainWindow::handleWorkerFailed);
+
+
+
     m_workerManager.init();
     m_workerManager.startWorker();
 
@@ -120,6 +124,15 @@ void MainWindow::handleArchiveCreated()
     logMessage("Archive succesfully created");
     setButtonsState(Done);
     ui->fileLabel->setText(ui->fileLabel->text() + " is done!");
+}
+
+void MainWindow::handleWorkerFailed(const QString& error)
+{
+    logMessage("Worker Error: Worker process failed:\n" + error + "\nTry restarting the application.");
+    setButtonsState(Ready);
+
+    m_workerManager.killWorker();
+    QTimer::singleShot(1000, &m_workerManager, &WorkerManager::startWorker);
 }
 
 void MainWindow::onCancelClicked()
