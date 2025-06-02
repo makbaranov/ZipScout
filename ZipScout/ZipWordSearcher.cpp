@@ -12,8 +12,7 @@ void ZipWordSearcher::unpackFiles(const QString& zipPath)
 {
     m_zip.setZipName(zipPath);
     if (!m_zip.open(QuaZip::mdUnzip)) {
-        m_lastError = QString("Couldnot open arhive: %1").arg(m_zip.getZipError());
-        emit errorOccurred(m_lastError);
+        qDebug() << "Couldnot open arhive: " << m_zip.getZipError();
         return;
     }
 
@@ -27,7 +26,6 @@ int ZipWordSearcher::getTotalFilesCount() {
 void ZipWordSearcher::findFilesWithWord(const QString& searchWord)
 {
     QStringList foundFilesWithMetaData;
-    m_lastError.clear();
 
     const int BATCH_SIZE = 10000;
     int totalFiles = m_fileNames.size();
@@ -110,11 +108,6 @@ bool ZipWordSearcher::searchWordInFile(QuaZipFile& file, const QString& searchWo
     }
 
     return false;
-}
-
-QString ZipWordSearcher::lastError() const
-{
-    return m_lastError;
 }
 
 void ZipWordSearcher::cancel()

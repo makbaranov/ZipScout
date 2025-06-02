@@ -8,19 +8,15 @@ ZipArchiveCreator::ZipArchiveCreator(QObject *parent)
 bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const QStringList& filePaths,
                                           const QString& resultZipPath)
 {
-    m_lastError.clear();
-
     QuaZip sourceZip(sourceZipPath);
     if (!sourceZip.open(QuaZip::mdUnzip)) {
-        m_lastError = QString("Can not open source archive: %1").arg(sourceZip.getZipError());
-        emit errorOccurred(m_lastError);
+        qDebug() << "Can not open source archive: " << sourceZip.getZipError();
         return false;
     }
 
     QuaZip destZip(resultZipPath);
     if (!destZip.open(QuaZip::mdCreate)) {
-        m_lastError = QString("Can not open destination archive: %1").arg(destZip.getZipError());
-        emit errorOccurred(m_lastError);
+        qDebug() << "Can not open destination archive: " << destZip.getZipError();
         sourceZip.close();
         return false;
     }
@@ -36,40 +32,35 @@ bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const 
         }
 
         processedFiles++;
-        emit archiveProgress(processedFiles, totalFiles);
     }
 
     destZip.close();
     if (destZip.getZipError() != UNZ_OK) {
-        m_lastError = "Close file Error";
+        qDebug() << "Close file Error";
         return false;
     }
 
     sourceZip.close();
 
-    emit archiveFinished(success);
     return success;
 }
 
 bool ZipArchiveCreator::copyFileToArchive(QuaZip& sourceZip, QuaZip& destZip, const QString& fileName)
 {
     if (!sourceZip.setCurrentFile(fileName)) {
-        m_lastError = QString("File not found in sorce archive: %1").arg(fileName);
-        emit errorOccurred(m_lastError);
+        qDebug() << "File not found in sorce archive: " << fileName;
         return false;
     }
 
     QuaZipFile sourceFile(&sourceZip);
     if (!sourceFile.open(QIODevice::ReadOnly)) {
-        m_lastError = QString("Can not open file for reading: %1").arg(fileName);
-        emit errorOccurred(m_lastError);
+        qDebug() << "Can not open file for reading: " << fileName;
         return false;
     }
 
     QuaZipFileInfo fileInfo;
     if (!sourceFile.getFileInfo(&fileInfo)) {
-        m_lastError = QString("Can not get file info: %1").arg(fileName);
-        emit errorOccurred(m_lastError);
+        qDebug() << "Can not get file info: " << fileName;
         sourceFile.close();
         return false;
     }
@@ -82,8 +73,7 @@ bool ZipArchiveCreator::copyFileToArchive(QuaZip& sourceZip, QuaZip& destZip, co
     newFileInfo.uncompressedSize = fileInfo.uncompressedSize;
 
     if (!destFile.open(QIODevice::WriteOnly, newFileInfo)) {
-        m_lastError = QString("Can not create file in destination archive: %1").arg(fileName);
-        emit errorOccurred(m_lastError);
+        qDebug() <<"Can not create file in destination archive: " << fileName;
         sourceFile.close();
         return false;
     }
@@ -98,8 +88,7 @@ bool ZipArchiveCreator::copyFileToArchive(QuaZip& sourceZip, QuaZip& destZip, co
         }
 
         if (destFile.write(buffer.data(), bytesRead) != bytesRead) {
-            m_lastError = QString("Error file writing: %1").arg(fileName);
-            emit errorOccurred(m_lastError);
+            qDebug() << "Error file writing: " << fileName;
             destFile.close();
             sourceFile.close();
             return false;

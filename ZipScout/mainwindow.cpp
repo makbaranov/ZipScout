@@ -67,8 +67,6 @@ void MainWindow::handleSearchStarted(int totalFiles)
 
 void MainWindow::handleFileProcessed(const QStringList& batchFiles)
 {
-    // qDebug() << "handleFileProcessed";
-
     m_currentFile = batchFiles[0].toInt();
     auto filesWithMetadata = batchFiles[1].split(";");
 

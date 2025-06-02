@@ -23,18 +23,12 @@ public:
     int getTotalFilesCount();
     void findFilesWithWord(const QString& searchWord);
     QFuture<void> findFilesWithWordAsync(const QString& searchWord);
-
     void cancel();
-    QString lastError() const;
-
-signals:
-    void errorOccurred(const QString& error);
 
 private:
     bool searchWordInFile(QuaZipFile& file, const QString& searchWord);
 
     QStringList m_fileNames;
-    QString m_lastError;
     zmq::context_t m_ctx;
     zmq::socket_t m_progressSocket;
     QuaZip m_zip;
