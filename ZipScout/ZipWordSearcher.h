@@ -23,7 +23,7 @@ public:
     int getTotalFilesCount();
     void findFilesWithWord(const QString& searchWord);
     QFuture<void> findFilesWithWordAsync(const QString& searchWord);
-    void cancel();
+    void abort();
 
 private:
     bool searchWordInFile(QuaZipFile& file, const QString& searchWord);
@@ -32,5 +32,5 @@ private:
     zmq::context_t m_ctx;
     zmq::socket_t m_progressSocket;
     QuaZip m_zip;
-    std::atomic<bool> m_canceled;
+    std::atomic<bool> m_aborted;
 };

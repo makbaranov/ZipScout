@@ -46,6 +46,15 @@ int main(int argc, char *argv[])
         QStringList files;
 
         QEventLoop loop;
+
+        QObject::connect(&manager, &WorkerManager::searchCompleted, [&]() {
+            qDebug() << "searchCompleted";
+            loop.quit();
+        });
+        // QObject::connect(&manager, &WorkerManager::archiveCreated, this, &MainWindow::handleArchiveCreated);
+        // QObject::connect(&manager, &WorkerManager::searchStarted, this, &MainWindow::handleSearchStarted);
+        // QObject::connect(&manager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
+
         // QObject::connect(&manager, &WorkerManager::searchCompleted, [&](const QStringList& files) {
         //     manager.createArchive(source, files, dest);
         // });

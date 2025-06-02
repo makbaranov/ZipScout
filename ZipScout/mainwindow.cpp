@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->filesTableView->sortByColumn(FoundFilesModel::COLUMN_FILENAME, Qt::AscendingOrder);
 
     connect(ui->selectFileButton, &QPushButton::clicked, this, &MainWindow::onSelectFileClicked);
-    connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::onCancelClicked);
+    connect(ui->abortButton, &QPushButton::clicked, this, &MainWindow::onAbortClicked);
     connect(ui->clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);
     connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::onSaveClicked);
 
@@ -135,10 +135,11 @@ void MainWindow::handleWorkerFailed(const QString& error)
     QTimer::singleShot(1000, &m_workerManager, &WorkerManager::startWorker);
 }
 
-void MainWindow::onCancelClicked()
+void MainWindow::onAbortClicked()
 {
-    logMessage("Operation cancelled");
-    m_workerManager.cancelOperation();
+    logMessage("Operation aborted");
+    setButtonsState(Aborted);
+    m_workerManager.abortOperation();
 }
 
 void MainWindow::onClearClicked()
@@ -188,11 +189,11 @@ void MainWindow::logMessage(const QString& msg)
 
 void MainWindow::setButtonsState(AppState state)
 {
-    ui->progressBar->setVisible(state != Ready);
-    ui->fileLabel->setVisible(state != Ready);
+    ui->progressBar->setVisible(state == Done || state == InProgress);
+    ui->fileLabel->setVisible(state == Done || state == InProgress);
 
     ui->selectFileButton->setEnabled(state == Ready);
-    ui->cancelButton->setEnabled(state == InProgress);
+    ui->abortButton->setEnabled(state == InProgress || state == Aborted);
     ui->clearButton->setEnabled(state != InProgress);
     ui->saveButton->setEnabled(state == Done && !m_foundFiles.isEmpty());
 }

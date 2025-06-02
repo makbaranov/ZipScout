@@ -155,9 +155,9 @@ void WorkerManager::killWorker() {
     }
 }
 
-void WorkerManager::cancelOperation() {
-    qDebug() << "cancelOpearation";
-    sendCommand("CANCEL");
+void WorkerManager::abortOperation() {
+    qDebug() << "abortOpearation";
+    sendCommand("ABORT");
 }
 
 void WorkerManager::sendCommand(const QString& cmd) {

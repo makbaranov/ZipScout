@@ -29,7 +29,12 @@ bool ZipArchiveCreator::createResultArchive(const QString& sourceZipPath, const 
     int processedFiles = 0;
     bool success = true;
 
+    m_aborted.store(false);
     for (const QString& filePath : filePaths) {
+        if (m_aborted.load()) {
+            break;
+        }
+
         if (!copyFileToArchive(sourceZip, destZip, filePath)) {
             success = false;
             break;
@@ -109,4 +114,19 @@ bool ZipArchiveCreator::copyFileToArchive(QuaZip& sourceZip, QuaZip& destZip, co
     sourceFile.close();
 
     return true;
+}
+
+QFuture<bool> ZipArchiveCreator::createResultArchiveAsync(const QString& sourceZipPath,
+                                                          const QStringList& filePaths,
+                                                          const QString& resultZipPath)
+{
+    return QtConcurrent::run([this, sourceZipPath, filePaths, resultZipPath]() {
+        return createResultArchive(sourceZipPath, filePaths, resultZipPath);
+    });
+}
+
+void ZipArchiveCreator::abort()
+{
+    qDebug() << " called";
+    m_aborted.store(true);
 }

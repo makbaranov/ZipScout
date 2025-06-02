@@ -26,12 +26,13 @@ public:
     enum AppState {
         Ready,
         InProgress,
+        Aborted,
         Done
     };
 
 private slots:
     void onSelectFileClicked();
-    void onCancelClicked();
+    void onAbortClicked();
     void onClearClicked();
     void onSaveClicked();
 

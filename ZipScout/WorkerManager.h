@@ -19,7 +19,7 @@ public:
     void startWorker();
     void stopWorker();
     void killWorker();
-    void cancelOperation();
+    void abortOperation();
     void sendCommand(const QString& cmd);
     void handleResponse(const QString& cmd, const QString& response);
     void testConnection();

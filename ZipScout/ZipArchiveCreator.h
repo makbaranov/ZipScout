@@ -23,9 +23,17 @@ public:
                              const QStringList& filePaths,
                              const QString& resultZipPath);
 
+    QFuture<bool> createResultArchiveAsync(const QString& sourceZipPath,
+                                           const QStringList& filePaths,
+                                           const QString& resultZipPath);
+
+    void abort();
+
 private:
     bool copyFileToArchive(QuaZip& sourceZip, QuaZip& destZip, const QString& fileName);
 
     zmq::context_t m_ctx;
     zmq::socket_t m_progressSocket;
+
+    std::atomic<bool> m_aborted;
 };

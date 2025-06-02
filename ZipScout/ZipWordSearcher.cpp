@@ -32,9 +32,9 @@ void ZipWordSearcher::findFilesWithWord(const QString& searchWord)
     int processedFiles = 0;
     int batchProcessed = 0;
 
-    m_canceled.store(false);
+    m_aborted.store(false);
     for (const QString& fileName : m_fileNames) {
-        if (m_canceled.load()) {
+        if (m_aborted.load()) {
             break;
         }
 
@@ -54,8 +54,8 @@ void ZipWordSearcher::findFilesWithWord(const QString& searchWord)
             file.getFileInfo(&fileInfo);
             QString fileMetadata = QString("%1,%2,%3")
                                        .arg(fileName)
-                                       .arg(fileInfo.uncompressedSize) // Размер файла
-                                       .arg(fileInfo.dateTime.toString(Qt::ISODate)); // Время в ISO формате
+                                       .arg(fileInfo.uncompressedSize)
+                                       .arg(fileInfo.dateTime.toString(Qt::ISODate));
 
             foundFilesWithMetaData.append(fileMetadata);
         }
@@ -110,9 +110,9 @@ bool ZipWordSearcher::searchWordInFile(QuaZipFile& file, const QString& searchWo
     return false;
 }
 
-void ZipWordSearcher::cancel()
+void ZipWordSearcher::abort()
 {
-    qDebug() << "cancel called";
-    m_canceled.store(true);
+    qDebug() << "abort called";
+    m_aborted.store(true);
 }
 
