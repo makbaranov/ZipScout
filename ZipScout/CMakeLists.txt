@@ -12,7 +12,7 @@ if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Concurrent Core5Compat)
 find_package(ZeroMQ REQUIRED)
 find_package(cppzmq REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -31,6 +31,10 @@ FetchContent_MakeAvailable(QuaZip)
 FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG release-1.12.1
+    CMAKE_ARGS
+        -DBUILD_SHARED_LIBS=ON
+        -DINSTALL_GTEST=OFF
+        -Dgtest_force_shared_crt=ON
 )
 FetchContent_MakeAvailable(googletest)
 
@@ -71,7 +75,7 @@ target_link_libraries(ZipScoutWorker PRIVATE
     cppzmq
 )
 
-add_executable(ZipScoutTests
+qt_add_executable(ZipScoutTests
     tests/test_main.cpp
     WorkerManager.h
     WorkerManager.cpp
@@ -94,18 +98,54 @@ target_link_libraries(ZipScoutTests PRIVATE
 
 if(WIN32)
     set_target_properties(ZipScout ZipScoutWorker PROPERTIES WIN32_EXECUTABLE TRUE)
-    add_custom_command(TARGET ZipScoutWorker POST_BUILD
+
+    get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+
+    if(WINDEPLOYQT_EXECUTABLE)
+        add_custom_command(TARGET ZipScout POST_BUILD
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+                --no-compiler-runtime
+                --no-translations
+                "$<TARGET_FILE_DIR:ZipScout>"
+            COMMENT "Deploying Qt dependencies for ZipScout"
+        )
+    else()
+        message(WARNING "windeployqt not found - Qt dependencies won't be deployed")
+    endif()
+
+    add_custom_command(TARGET ZipScout POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:Qt6::Core5Compat>"
+            "$<TARGET_FILE_DIR:ZipScout>"
+        COMMENT "Copying Qt6Core5Compat.dll"
+    )
+
+    add_custom_command(TARGET ZipScout POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:QuaZip::QuaZip>"
-            "$<TARGET_FILE_DIR:ZipScoutWorker>"
+            "$<TARGET_FILE_DIR:ZipScout>"
         COMMENT "Copying QuaZip DLL"
     )
 
-    add_custom_command(TARGET ZipScoutWorker POST_BUILD
+    add_custom_command(TARGET ZipScout POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "C:/vcpkg/installed/x64-windows/bin/zlib1.dll"
-            "$<TARGET_FILE_DIR:ZipScoutWorker>"
+            "$<TARGET_FILE_DIR:ZipScout>"
         COMMENT "Copying ZLIB DLL"
+    )
+
+    add_custom_command(TARGET ZipScout POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "C:/vcpkg/installed/x64-windows/bin/libzmq-mt-4_3_5.dll"
+            "$<TARGET_FILE_DIR:ZipScout>"
+    )
+
+    add_custom_command(TARGET ZipScoutTests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:gtest>"
+            "$<TARGET_FILE_DIR:ZipScoutTests>"
     )
 endif()
 

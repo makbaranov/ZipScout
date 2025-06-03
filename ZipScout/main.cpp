@@ -97,10 +97,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if (parser.isSet("test")) {
-        qDebug() << "Test mode";
-    }
-
     MainWindow w;
     w.show();
     return a.exec();

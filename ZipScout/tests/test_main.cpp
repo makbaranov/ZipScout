@@ -13,7 +13,7 @@ protected:
     static void SetUpTestSuite() {
         if (!QApplication::instance()) {
             int argc = 1;
-            char* argv[] = {"test"};
+            char* argv[] = {const_cast<char*>("test")};
             app = new QApplication(argc, argv);
         }
     }
