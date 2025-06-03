@@ -73,10 +73,22 @@ target_link_libraries(ZipScoutWorker PRIVATE
 
 add_executable(ZipScoutTests
     tests/test_main.cpp
+    WorkerManager.h
+    WorkerManager.cpp
+    ZipWordSearcher.h
+    ZipWordSearcher.cpp
+    ZipArchiveCreator.h
+    ZipArchiveCreator.cpp
 )
 
 target_link_libraries(ZipScoutTests PRIVATE
     Qt6::Core
+    Qt6::Widgets
+    Qt6::Concurrent
+    QuaZip::QuaZip
+    ZLIB::ZLIB
+    libzmq
+    cppzmq
     gtest_main
 )
 
