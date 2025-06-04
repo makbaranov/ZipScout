@@ -18,7 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(&m_workerManager, &WorkerManager::searchCompleted, this, &MainWindow::handleSearchCompleted);
     connect(&m_workerManager, &WorkerManager::archiveCreated, this, &MainWindow::handleArchiveCreated);
-    connect(&m_workerManager, &WorkerManager::searchStarted, this, &MainWindow::handleProgressStarted);
+    connect(&m_workerManager, &WorkerManager::searchStarted, this, &MainWindow::handleSearchStarted);
+    connect(&m_workerManager, &WorkerManager::searchProgressStarted, this, &MainWindow::handleProgressStarted);
     connect(&m_workerManager, &WorkerManager::creatingStarted, this, &MainWindow::handleCreatingStarted);
     connect(&m_workerManager, &WorkerManager::fileProcessed, this, &MainWindow::handleFileProcessed);
     connect(&m_workerManager, &WorkerManager::creatingProcessed, this, &MainWindow::handleCreatingProcessed);
@@ -68,12 +69,19 @@ void MainWindow::handleCreatingStarted()
     handleProgressStarted(m_numberFilesToSave);
 }
 
-void MainWindow::handleProgressStarted(int totalFiles)
+
+void MainWindow::handleSearchStarted()
 {
     m_currentFile = 0;
-    m_totalFiles = totalFiles;
-    ui->progressBar->setMaximum(totalFiles);
+    ui->progressBar->setMaximum(0);
     ui->progressBar->setFormat("%v of %m files processed");
+}
+
+
+void MainWindow::handleProgressStarted(int totalFiles)
+{
+    ui->progressBar->setMaximum(totalFiles);
+    m_totalFiles = totalFiles;
 }
 
 void MainWindow::handleCreatingProcessed(int filesProcessed) {

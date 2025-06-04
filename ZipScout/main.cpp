@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QCommandLineParser parser;
-    parser.addOption({"test", "Test mod"});
 
     parser.addOption({"nogui", "Console mod"});
     parser.addOption({"source", "Sorce file", "path"});
@@ -50,8 +49,12 @@ int main(int argc, char *argv[])
         QStringList foundFiles;
         bool operationSuccess = false;
 
-        QObject::connect(&manager, &WorkerManager::searchStarted, [](int totalFiles) {
-            qDebug() << "Search started. Total files:" << totalFiles;
+        QObject::connect(&manager, &WorkerManager::searchStarted, []() {
+            qDebug() << "Search started" ;
+        });
+
+        QObject::connect(&manager, &WorkerManager::searchProgressStarted, [](int totalFiles) {
+            qInfo() << "Total files:" << totalFiles;
         });
 
         QObject::connect(&manager, &WorkerManager::creatingProcessed, [&foundFiles](int filesProcessed) {

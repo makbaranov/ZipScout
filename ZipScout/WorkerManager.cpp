@@ -107,6 +107,11 @@ void WorkerManager::progressListening()
                     else if (parts[0].contains("CREATING_DONE")) {
                         emit archiveCreated();
                     }
+                    else if (parts[0].contains("UNPACKED")) {
+                        emit searchProgressStarted(parts[1].toInt());
+                    }
+
+
                 }
             }
         }
@@ -175,8 +180,8 @@ void WorkerManager::handleResponse(const QString& cmd, const QString& response) 
 
     if (cmd.startsWith("SEARCH")) {
         auto message = response.split("|||");
-        if (message[0] == "STARTED" && !message[1].isEmpty()){
-            emit searchStarted(message[1].toInt());
+        if (response.contains("STARTED")) {
+            emit searchStarted();
         }
     }
     else if (cmd.startsWith("CREATE_ARCHIVE")) {

@@ -45,9 +45,9 @@ int main(int argc, char *argv[]) {
         else if (msg.startsWith("SEARCH")) {
             auto parts = msg.split("|||");
             if (parts.size() == 3) {
-                searcher.unpackFiles(parts[1]);
-                QString response("STARTED|||" + QString::number(searcher.getTotalFilesCount()));
+                QString response("STARTED|||" + QString::number(0));
                 socket.send(zmq::buffer(response.toStdString()), zmq::send_flags::none);
+                searcher.unpackFiles(parts[1]);
                 searcher.findFilesWithWordAsync(parts[2]);
             }
         }

@@ -40,6 +40,7 @@ private slots:
     void handleArchiveCreated();
 
     void handleCreatingStarted();
+    void handleSearchStarted();
     void handleProgressStarted(int totalFiles);
     void handleFileProcessed(const QStringList& batchFiles);
     void handleCreatingProcessed(int filesProcessed);

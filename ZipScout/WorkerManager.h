@@ -29,7 +29,8 @@ public slots:
     void createArchive(const QString& sourceZip, const QStringList& files, const QString& destZip);
 
 signals:
-    void searchStarted(int totalFiles);
+    void searchStarted();
+    void searchProgressStarted(int totalFiles);
     void creatingStarted();
     void fileProcessed(const QStringList& batchFiles);
     void creatingProcessed(int filesProcessed);

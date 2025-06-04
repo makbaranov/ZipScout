@@ -17,6 +17,9 @@ void ZipWordSearcher::unpackFiles(const QString& zipPath)
     }
 
     m_fileNames = m_zip.getFileNameList();
+
+    QString response("UNPACKED|||" + QString::number(getTotalFilesCount()));
+    m_progressSocket.send(zmq::buffer(response.toStdString()), zmq::send_flags::none);
 }
 
 int ZipWordSearcher::getTotalFilesCount() {
